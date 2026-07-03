@@ -1,269 +1,348 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Jogo: Complete a Música</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎧 Complete a Música - Pro Edition</title>
     <style>
-        /* Estilização moderna com tema escuro (Dark Mode) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: linear-gradient(135deg, #0a0f1e 0%, #0c1222 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: white;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
         }
-
-        .container {
-            background-color: #1e293b;
-            width: 100%;
-            max-width: 600px;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            border: 1px solid #334155;
-        }
-
-        h1, h2 {
-            text-align: center;
-            color: #38bdf8;
-            margin-top: 0;
-        }
-
-        .secao {
-            background-color: #0f172a;
-            padding: 20px;
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .player-container {
+            background: #000;
             border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #1e293b;
-        }
-
-        label {
-            display: block;
-            margin-top: 10px;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            background-color: #1e293b;
-            border: 1px solid #475569;
-            border-radius: 6px;
-            color: white;
-            box-sizing: border-box;
-            font-size: 15px;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #38bdf8;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #38bdf8;
-            color: #0f172a;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background-color: #0ea5e9;
-        }
-
-        button.btn-jogar {
-            background-color: #10b981;
-            color: white;
-        }
-
-        button.btn-jogar:hover {
-            background-color: #059669;
-        }
-
-        button.btn-parar {
-            background-color: #f59e0b;
-            color: #0f172a;
-        }
-
-        button.btn-parar:hover {
-            background-color: #d97706;
-        }
-
-        /* CORREÇÃO 1: Player visível e responsivo para você manipular */
-        #player-wrapper {
-            position: relative;
-            padding-pb: 56.25%; /* Proporção 16:9 */
-            height: 0;
             overflow: hidden;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 2px solid #334155;
-            display: none; /* Só aparece quando o jogo começa */
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
         }
-
-        #player-wrapper iframe {
+        .players-stack {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+        .player-slot {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
         }
+        .player-slot iframe { width: 100%; height: 100%; border: none; }
+        
+        .main-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .main-controls button {
+            background: #1e243b;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            padding: 12px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .main-controls button:hover { background: #ff4500; transform: scale(1.02); }
+        .main-controls button:active { transform: scale(0.98); }
+        .play-btn { min-width: 120px; background: #ff4500; }
+        .btn-chute { background: #d97706 !important; } /* Cor laranja para o botão "Já sei" */
+        
+        .settings-bar {
+            background: rgba(30, 36, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .playlist-area {
+            background: rgba(30, 36, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .setup-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+        .setup-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .setup-row input, .setup-row textarea {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 18px;
+            border-radius: 40px;
+            border: none;
+            background: #1a1f35;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .setup-row textarea {
+            border-radius: 15px;
+            resize: none;
+            height: 45px;
+        }
+        .setup-row input::placeholder, .setup-row textarea::placeholder { color: #888; }
+        
+        .btn-action {
+            background: #ff4500;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-action:hover { background: #e03e00; }
 
-        #area-jogo {
-            display: none;
+        .game-display-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 1px dashed #334155;
+            text-align: center;
         }
 
-        .resultado {
+        .lyrics-box {
+            font-style: italic;
+            color: #38bdf8;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .input-answer {
+            width: 60%;
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .input-answer:focus { outline: none; border-color: #ff4500; }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #aaa;
             text-align: center;
             font-weight: bold;
-            font-size: 18px;
-            margin-top: 15px;
         }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h1>🎵 Complete a Música</h1>
-
-    <div id="area-config" class="secao">
-        <h2>Configurar Partida</h2>
-        
-        <label for="url-youtube">Link ou ID do Vídeo do YouTube:</label>
-        <input type="text" id="url-youtube" placeholder="Ex: https://www.youtube.com/watch?v=E0XyU0Y1gS0" value="https://www.youtube.com/watch?v=E0XyU0Y1gS0">
-
-        <label for="tempo-parada">Parar no segundo:</label>
-        <input type="number" id="tempo-parada" placeholder="Ex: 42" value="42">
-
-        <label for="letra-dica">Texto do desafio (Letra até a parada):</label>
-        <textarea id="letra-dica" rows="2" placeholder='Ex: "E nessa loucura de dizer que não te quero, vou negando as..."'>E nessa loucura de dizer que não te quero, vou negando as...</textarea>
-
-        <label for="resposta-correta">Palavra/Frase que completa (Resposta certa):</label>
-        <input type="text" id="resposta-correta" placeholder="Ex: aparências" value="aparências">
-
-        <button onclick="carregarJogo()">Salvar e Começar Jogo</button>
+    <div class="player-container">
+        <div class="players-stack">
+            <div id="playerSlot" class="player-slot">
+                <div id="ytplayer"></div>
+            </div>
+        </div>
     </div>
-
-    <div id="area-jogo" class="secao">
-        <h2>Hora de Jogar!</h2>
+    
+    <div class="main-controls">
+        <button id="playBtn" class="play-btn">▶️ Tocar Música</button>
+        <button id="rushBtn" class="btn-chute" style="display: none;">💡 Já sei a resposta!</button>
+    </div>
+    
+    <div class="settings-bar">
+        <div><span>🎮 Modo: Jogo de Adivinhação Ativo</span></div>
+        <div><span>🔊 Controles nativos do YouTube liberados</span></div>
+    </div>
+    
+    <div class="playlist-area">
+        <div class="playlist-header">
+            <strong>📋 CONFIGURAR SEU DESAFIO</strong>
+        </div>
         
-        <div id="player-wrapper">
-            <div id="youtube-player"></div>
+        <div class="setup-section">
+            <div class="setup-row">
+                <input type="text" id="videoUrl" placeholder="URL ou ID do YouTube" value="https://www.youtube.com/watch?v=E0XyU0Y1gS0">
+                <input type="number" id="stopTime" placeholder="Parar no segundo (Ex: 42)" value="42" style="max-width: 180px;">
+            </div>
+            <div class="setup-row">
+                <textarea id="lyricClue" placeholder="Texto da letra até a parada... (Ex: 'E nessa loucura de dizer que não te quero...')">E nessa loucura de dizer que não te quero, vou negando as...</textarea>
+                <input type="text" id="correctAnswer" placeholder="Palavra/Frase certa (Ex: aparências)" value="aparências">
+            </div>
+            <button id="saveBtn" class="btn-action">💾 Salvar Configurações e Carregar Música</button>
         </div>
 
-        <button id="btn-ouvir" class="btn-jogar" onclick="iniciarAudio()">Ouvir Música 🎧</button>
-
-        <button id="btn-ja-sei" class="btn-parar" onclick="interromperETentar()" style="display: none;">Já sei a resposta! 💡</button>
-
-        <div id="desafio-input" style="display: none; margin-top: 20px;">
-            <p id="exibir-letra" style="font-style: italic; background: #1e293b; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8;"></p>
-            
-            <label for="resposta-usuario">Qual é a próxima palavra/frase?</label>
-            <input type="text" id="resposta-usuario" placeholder="Digite sua resposta aqui...">
-            
-            <button onclick="verificarResposta()">Enviar Resposta</button>
-            <div id="mensagem-final" class="resultado"></div>
+        <div id="gamePanel" class="game-display-panel" style="display: none;">
+            <div class="lyrics-box" id="displayLyrics">""</div>
+            <input type="text" id="userAnswer" class="input-answer" placeholder="Complete o trecho aqui..."><br>
+            <button id="submitBtn" class="btn-action" style="background: #10b981;">🚀 Enviar Resposta</button>
         </div>
+        
+        <div id="statusMsg" class="status">🎵 Configure os campos acima e clique em Salvar!</div>
     </div>
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
-    let player;
-    let loopTempo;
-    let config = {};
+    let player = null;
+    let timeLoop = null;
+    let gameConfig = {};
+    let isVideoPlaying = false;
 
-    function extrairVideoId(url) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : url;
+    // DOM Elements
+    const videoUrlInput = document.getElementById('videoUrl');
+    const stopTimeInput = document.getElementById('stopTime');
+    const lyricClueInput = document.getElementById('lyricClue');
+    const correctAnswerInput = document.getElementById('correctAnswer');
+    const saveBtn = document.getElementById('saveBtn');
+    const playBtn = document.getElementById('playBtn');
+    const rushBtn = document.getElementById('rushBtn');
+    const gamePanel = document.getElementById('gamePanel');
+    const displayLyrics = document.getElementById('displayLyrics');
+    const userAnswerInput = document.getElementById('userAnswer');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusDiv = document.getElementById('statusMsg');
+
+    function extractVideoId(input) {
+        let text = input.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(text)) return text;
+        const patterns = [ /(?:youtube\.com\/watch\?v=)([^&]+)/i, /(?:youtu\.be\/)([^?]+)/i, /(?:youtube\.com\/embed\/)([^\/?]+)/i ];
+        for (let p of patterns) { const match = text.match(p); if (match) return match[1]; }
+        return null;
     }
 
-    function carregarJogo() {
-        const urlInput = document.getElementById('url-youtube').value;
-        
-        config.videoId = extrairVideoId(urlInput);
-        config.tempoParada = parseFloat(document.getElementById('tempo-parada').value);
-        config.letra = document.getElementById('letra-dica').value;
-        config.resposta = document.getElementById('resposta-correta').value.trim().toLowerCase();
-
-        if (player && typeof player.destroy === 'function') {
-            player.destroy();
-        }
-
-        // Ativamos os controles padrão ('controls': 1) para você poder manipular o player se quiser
-        player = new YT.Player('youtube-player', {
+    // Carrega o Player do YouTube
+    function onYouTubeIframeAPIReady() {
+        // Inicializa com o vídeo padrão da caixinha
+        const initialId = extractVideoId(videoUrlInput.value);
+        player = new YT.Player('ytplayer', {
             height: '100%',
             width: '100%',
-            videoId: config.videoId,
-            playerVars: { 'controls': 1, 'disablekb': 0, 'rel': 0 }
+            videoId: initialId,
+            playerVars: { controls: 1, rel: 0, modestbranding: 1 },
+            events: {
+                onReady: () => { statusDiv.innerText = "✅ Sistema Pronto! Clique em Salvar para capturar sua música."; }
+            }
         });
-
-        document.getElementById('area-config').style.display = 'none';
-        document.getElementById('area-jogo').style.display = 'block';
     }
 
-    function iniciarAudio() {
-        document.getElementById('btn-ouvir').style.display = 'none';
-        document.getElementById('player-wrapper').style.display = 'block'; // Mostra o vídeo
-        document.getElementById('btn-ja-sei').style.display = 'block'; // Mostra o botão de atalho
+    // Salva as configurações inseridas e atualiza o vídeo
+    saveBtn.addEventListener('click', () => {
+        const id = extractVideoId(videoUrlInput.value);
+        if(!id) { statusDiv.innerHTML = "❌ URL ou ID do YouTube inválido!"; return; }
+
+        gameConfig.id = id;
+        gameConfig.stopTime = parseFloat(stopTimeInput.value) || 0;
+        gameConfig.lyrics = lyricClueInput.value;
+        gameConfig.answer = correctAnswerInput.value.trim().toLowerCase();
+
+        // Carrega o novo vídeo selecionado no player
+        player.cueVideoById(gameConfig.id);
+        
+        // Reset da interface
+        gamePanel.style.display = "none";
+        rushBtn.style.display = "none";
+        playBtn.style.display = "inline-flex";
+        playBtn.innerHTML = "▶️ Tocar Música";
+        isVideoPlaying = false;
+        clearInterval(timeLoop);
+
+        statusDiv.innerHTML = "✅ Jogo configurado com sucesso! Clique em 'Tocar Música' para iniciar.";
+    });
+
+    // Controla o fluxo de dar Play
+    function startPlayingGame() {
+        if(!gameConfig.id) { statusDiv.innerHTML = "❌ Salve as configurações antes de jogar!"; return; }
+        
+        playBtn.style.display = "none";
+        rushBtn.style.display = "inline-flex"; // Exibe o botão de interrupção manual
+        gamePanel.style.display = "none";
+        userAnswerInput.value = "";
         
         player.playVideo();
+        isVideoPlaying = true;
+        statusDiv.innerHTML = "🔊 Ouvindo a faixa musical...";
 
-        loopTempo = setInterval(() => {
+        // Monitor do tempo
+        timeLoop = setInterval(() => {
             if (player && typeof player.getCurrentTime === 'function') {
-                let tempoAtual = player.getCurrentTime();
-                
-                if (tempoAtual >= config.tempoParada) {
-                    pararNoTempoCorreto();
+                let current = player.getCurrentTime();
+                if (current >= gameConfig.stopTime) {
+                    triggerChallengePause();
                 }
             }
         }, 100);
     }
 
-    // Função que centraliza a parada e mostra o input de texto
-    function pararNoTempoCorreto() {
+    // Função que executa a parada (seja automática pelo tempo ou manual pelo botão)
+    function triggerChallengePause() {
         player.pauseVideo();
-        clearInterval(loopTempo);
-        
-        document.getElementById('btn-ja-sei').style.display = 'none'; // Esconde o botão de parada manual
-        document.getElementById('exibir-letra').innerText = config.letra;
-        document.getElementById('desafio-input').style.display = 'block';
+        clearInterval(timeLoop);
+        isVideoPlaying = false;
+
+        rushBtn.style.display = "none";
+        displayLyrics.innerText = `"${gameConfig.lyrics}"`;
+        gamePanel.style.display = "block";
+        statusDiv.innerHTML = "🛑 Música pausada! Digite o complemento.";
     }
 
-    // Ação do novo botão se a pessoa quiser responder antes
-    function interromperETentar() {
-        pararNoTempoCorreto();
-    }
+    // Ação dos botões de fluxo
+    playBtn.addEventListener('click', startPlayingGame);
+    rushBtn.addEventListener('click', triggerChallengePause); // CORREÇÃO 2: Parada manual rápida
 
-    function verificarResposta() {
-        const respostaUser = document.getElementById('resposta-usuario').value.trim().toLowerCase();
-        const msg = document.getElementById('mensagem-final');
-
-        if (respostaUser === config.resposta) {
-            msg.style.color = "#10b981";
-            msg.innerText = "Acertou em cheio! 🎉 Soltando o resto da música...";
+    // Validação da resposta informada
+    submitBtn.addEventListener('click', () => {
+        const input = userAnswerInput.value.trim().toLowerCase();
+        if (input === gameConfig.answer) {
+            statusDiv.innerHTML = "<span style='color: #10b981;'>🎉 RESPOSTA EXATA! O restante da música vai continuar tocando!</span>";
+            gamePanel.style.display = "none";
+            playBtn.style.display = "inline-flex";
+            playBtn.innerHTML = "▶️ Continuar Tocando";
             player.playVideo();
         } else {
-            msg.style.color = "#ef4444";
-            msg.innerText = "Ih, errou! ❌ Tente de novo!";
+            statusDiv.innerHTML = "<span style='color: #ef4444;'>❌ Resposta Incorreta! Ouça novamente ou tente outra palavra.</span>";
         }
-    }
-</script>
+    });
 
+    userAnswerInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') submitBtn.click(); });
+    window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+</script>
 </body>
 </html>
