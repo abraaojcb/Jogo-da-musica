@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Jogo: Complete a Música</title>
+    <style>
+        /* Estilização moderna com tema escuro (Dark Mode) */
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #1e293b;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #38bdf8;
+            margin-top: 0;
+        }
+
+        .secao {
+            background-color: #0f172a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #1e293b;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: white;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #38bdf8;
+            color: #0f172a;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #0ea5e9;
+        }
+
+        button.btn-jogar {
+            background-color: #10b981;
+            color: white;
+        }
+
+        button.btn-jogar:hover {
+            background-color: #059669;
+        }
+
+        /* Esconde o player do YouTube quase todo para a pessoa focar só no áudio */
+        #player-wrapper {
+            overflow: hidden;
+            height: 0px; /* Mude para 200px se quiser ver o vídeo enquanto testa */
+            margin-bottom: 10px;
+        }
+
+        #area-jogo {
+            display: none;
+        }
+
+        .resultado {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎵 Complete a Música</h1>
+
+    <div id="area-config" class="secao">
+        <h2>Configurar Partida</h2>
+        
+        <label for="url-youtube">Link ou ID do Vídeo do YouTube:</label>
+        <input type="text" id="url-youtube" placeholder="Ex: https://www.youtube.com/watch?v=E0XyU0Y1gS0" value="https://www.youtube.com/watch?v=E0XyU0Y1gS0">
+
+        <label for="tempo-parada">Parar no segundo:</label>
+        <input type="number" id="tempo-parada" placeholder="Ex: 42" value="42">
+
+        <label for="letra-dica">Texto do desafio (Letra até a parada):</label>
+        <textarea id="letra-dica" rows="2" placeholder='Ex: "E nessa loucura de dizer que não te quero, vou negando as..."'>E nessa loucura de dizer que não te quero, vou negando as...</textarea>
+
+        <label for="resposta-correta">Palavra/Frase que completa (Resposta certa):</label>
+        <input type="text" id="resposta-correta" placeholder="Ex: aparências" value="aparências">
+
+        <button onclick="carregarJogo()">Salvar e Começar Jogo</button>
+    </div>
+
+    <div id="area-jogo" class="secao">
+        <h2>Hora de Jogar!</h2>
+        
+        <div id="player-wrapper">
+            <div id="youtube-player"></div>
+        </div>
+
+        <button id="btn-ouvir" class="btn-jogar" onclick="iniciarAudio()">Ouvir Música 🎧</button>
+
+        <div id="desafio-input" style="display: none; margin-top: 20px;">
+            <p id="exibir-letra" style="font-style: italic; background: #1e293b; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8;"></p>
+            
+            <label for="resposta-usuario">Qual é a próxima palavra/frase?</label>
+            <input type="text" id="resposta-usuario" placeholder="Digite sua resposta aqui...">
+            
+            <button onclick="verificarResposta()">Enviar Resposta</button>
+            <div id="mensagem-final" class="resultado"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+    let player;
+    let loopTempo;
+    let config = {};
+
+    // Função auxiliar para pegar o ID do vídeo mesmo se colarem o link completo do YouTube
+    function extrairVideoId(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : url;
+    }
+
+    // Esta função roda quando o usuário clica em "Salvar e Começar Jogo"
+    function carregarJogo() {
+        const urlInput = document.getElementById('url-youtube').value;
+        
+        // Guarda as configurações digitadas
+        config.videoId = extrairVideoId(urlInput);
+        config.tempoParada = parseFloat(document.getElementById('tempo-parada').value);
+        config.letra = document.getElementById('letra-dica').value;
+        config.resposta = document.getElementById('resposta-correta').value.trim().toLowerCase();
+
+        // Destrói o player anterior se ele já existir para não acumular
+        if (player && typeof player.destroy === 'function') {
+            player.destroy();
+        }
+
+        // Cria o novo player do YouTube com o vídeo escolhido
+        player = new YT.Player('youtube-player', {
+            height: '100%',
+            width: '100%',
+            videoId: config.videoId,
+            playerVars: { 'controls': 0, 'disablekb': 1, 'rel': 0 }
+        });
+
+        // Alterna as telas
+        document.getElementById('area-config').style.display = 'none';
+        document.getElementById('area-jogo').style.display = 'block';
+    }
+
+    function iniciarAudio() {
+        document.getElementById('btn-ouvir').style.display = 'none';
+        player.playVideo();
+
+        // Monitora o tempo do vídeo a cada 100 milissegundos
+        loopTempo = setInterval(() => {
+            if (player && typeof player.getCurrentTime === 'function') {
+                let tempoAtual = player.getCurrentTime();
+                
+                if (tempoAtual >= config.tempoParada) {
+                    player.pauseVideo(); // Pausa a música
+                    clearInterval(loopTempo); // Para de monitorar o tempo
+                    
+                    // Mostra o campo de resposta e a dica da letra
+                    document.getElementById('exibir-letra').innerText = config.letra;
+                    document.getElementById('desafio-input').style.display = 'block';
+                }
+            }
+        }, 100);
+    }
+
+    function verificarResposta() {
+        const respostaUser = document.getElementById('resposta-usuario').value.trim().toLowerCase();
+        const msg = document.getElementById('mensagem-final');
+
+        if (respostaUser === config.resposta) {
+            msg.style.color = "#10b981"; // Verde
+            msg.innerText = "Acertou em cheio! 🎉 Soltando o resto da música...";
+            player.playVideo(); // Deixa a música continuar como recompensa
+        } else {
+            msg.style.color = "#ef4444"; // Vermelho
+            msg.innerText = "Ih, errou! ❌ Tente de novo!";
+        }
+    }
+</script>
+
+</body>
+</html>
