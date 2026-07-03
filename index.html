@@ -93,11 +93,33 @@
             background-color: #059669;
         }
 
-        /* Esconde o player do YouTube quase todo para a pessoa focar só no áudio */
+        button.btn-parar {
+            background-color: #f59e0b;
+            color: #0f172a;
+        }
+
+        button.btn-parar:hover {
+            background-color: #d97706;
+        }
+
+        /* CORREÇÃO 1: Player visível e responsivo para você manipular */
         #player-wrapper {
+            position: relative;
+            padding-pb: 56.25%; /* Proporção 16:9 */
+            height: 0;
             overflow: hidden;
-            height: 0px; /* Mude para 200px se quiser ver o vídeo enquanto testa */
-            margin-bottom: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #334155;
+            display: none; /* Só aparece quando o jogo começa */
+        }
+
+        #player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         #area-jogo {
@@ -144,6 +166,8 @@
 
         <button id="btn-ouvir" class="btn-jogar" onclick="iniciarAudio()">Ouvir Música 🎧</button>
 
+        <button id="btn-ja-sei" class="btn-parar" onclick="interromperETentar()" style="display: none;">Já sei a resposta! 💡</button>
+
         <div id="desafio-input" style="display: none; margin-top: 20px;">
             <p id="exibir-letra" style="font-style: italic; background: #1e293b; padding: 15px; border-radius: 6px; border-left: 4px solid #38bdf8;"></p>
             
@@ -163,60 +187,67 @@
     let loopTempo;
     let config = {};
 
-    // Função auxiliar para pegar o ID do vídeo mesmo se colarem o link completo do YouTube
     function extrairVideoId(url) {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
         return (match && match[2].length === 11) ? match[2] : url;
     }
 
-    // Esta função roda quando o usuário clica em "Salvar e Começar Jogo"
     function carregarJogo() {
         const urlInput = document.getElementById('url-youtube').value;
         
-        // Guarda as configurações digitadas
         config.videoId = extrairVideoId(urlInput);
         config.tempoParada = parseFloat(document.getElementById('tempo-parada').value);
         config.letra = document.getElementById('letra-dica').value;
         config.resposta = document.getElementById('resposta-correta').value.trim().toLowerCase();
 
-        // Destrói o player anterior se ele já existir para não acumular
         if (player && typeof player.destroy === 'function') {
             player.destroy();
         }
 
-        // Cria o novo player do YouTube com o vídeo escolhido
+        // Ativamos os controles padrão ('controls': 1) para você poder manipular o player se quiser
         player = new YT.Player('youtube-player', {
             height: '100%',
             width: '100%',
             videoId: config.videoId,
-            playerVars: { 'controls': 0, 'disablekb': 1, 'rel': 0 }
+            playerVars: { 'controls': 1, 'disablekb': 0, 'rel': 0 }
         });
 
-        // Alterna as telas
         document.getElementById('area-config').style.display = 'none';
         document.getElementById('area-jogo').style.display = 'block';
     }
 
     function iniciarAudio() {
         document.getElementById('btn-ouvir').style.display = 'none';
+        document.getElementById('player-wrapper').style.display = 'block'; // Mostra o vídeo
+        document.getElementById('btn-ja-sei').style.display = 'block'; // Mostra o botão de atalho
+        
         player.playVideo();
 
-        // Monitora o tempo do vídeo a cada 100 milissegundos
         loopTempo = setInterval(() => {
             if (player && typeof player.getCurrentTime === 'function') {
                 let tempoAtual = player.getCurrentTime();
                 
                 if (tempoAtual >= config.tempoParada) {
-                    player.pauseVideo(); // Pausa a música
-                    clearInterval(loopTempo); // Para de monitorar o tempo
-                    
-                    // Mostra o campo de resposta e a dica da letra
-                    document.getElementById('exibir-letra').innerText = config.letra;
-                    document.getElementById('desafio-input').style.display = 'block';
+                    pararNoTempoCorreto();
                 }
             }
         }, 100);
+    }
+
+    // Função que centraliza a parada e mostra o input de texto
+    function pararNoTempoCorreto() {
+        player.pauseVideo();
+        clearInterval(loopTempo);
+        
+        document.getElementById('btn-ja-sei').style.display = 'none'; // Esconde o botão de parada manual
+        document.getElementById('exibir-letra').innerText = config.letra;
+        document.getElementById('desafio-input').style.display = 'block';
+    }
+
+    // Ação do novo botão se a pessoa quiser responder antes
+    function interromperETentar() {
+        pararNoTempoCorreto();
     }
 
     function verificarResposta() {
@@ -224,11 +255,11 @@
         const msg = document.getElementById('mensagem-final');
 
         if (respostaUser === config.resposta) {
-            msg.style.color = "#10b981"; // Verde
+            msg.style.color = "#10b981";
             msg.innerText = "Acertou em cheio! 🎉 Soltando o resto da música...";
-            player.playVideo(); // Deixa a música continuar como recompensa
+            player.playVideo();
         } else {
-            msg.style.color = "#ef4444"; // Vermelho
+            msg.style.color = "#ef4444";
             msg.innerText = "Ih, errou! ❌ Tente de novo!";
         }
     }
